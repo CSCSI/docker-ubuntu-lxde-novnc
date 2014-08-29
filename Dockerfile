@@ -9,7 +9,9 @@ RUN echo "deb http://gb.archive.ubuntu.com/ubuntu/ trusty main\n\
 deb http://gb.archive.ubuntu.com/ubuntu/ trusty multiverse\n\
 deb http://gb.archive.ubuntu.com/ubuntu/ trusty universe\n\
 deb http://gb.archive.ubuntu.com/ubuntu/ trusty restricted\n\
-deb http://ppa.launchpad.net/chris-lea/node.js/ubuntu trusty main\n\
+deb http://security.ubuntu.com/ubuntu trusty-security main restricted\n\
+deb http://security.ubuntu.com/ubuntu trusty-security universe\n\
+deb http://security.ubuntu.com/ubuntu trusty-security multiverse\n\
 "> /etc/apt/sources.list
 
 # no Upstart or DBus
@@ -23,16 +25,22 @@ RUN apt-get update \
         net-tools \
         lxde x11vnc xvfb \
         gtk2-engines-murrine ttf-ubuntu-font-family \
-        nodejs \
         libreoffice firefox \
     && apt-get autoclean \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
 
+
+RUN mkdir /etc/startup.aux/
+RUN echo "#Dummy" > /etc/startup.aux/00.sh
+RUN chmod +x /etc/startup.aux/00.sh
+RUN mkdir -p /etc/supervisor/conf.d
+RUN rm /etc/supervisor/supervisord.conf
+
 ADD noVNC /noVNC/
 
 ADD startup.sh /
-ADD supervisord.conf /
+ADD supervisord.conf /etc/supervisor/
 EXPOSE 6080
 EXPOSE 5900
 EXPOSE 22
