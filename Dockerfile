@@ -1,30 +1,16 @@
-FROM ubuntu:14.04
-MAINTAINER Kieran Evans <keyz182@gmail.com>
+FROM ubuntu:24.04
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV HOME /root
+ENV DEBIAN_FRONTEND=noninteractive
+ENV HOME=/root
 
-# setup our Ubuntu sources (ADD breaks caching)
-RUN echo "deb http://gb.archive.ubuntu.com/ubuntu/ trusty main\n\
-deb http://gb.archive.ubuntu.com/ubuntu/ trusty multiverse\n\
-deb http://gb.archive.ubuntu.com/ubuntu/ trusty universe\n\
-deb http://gb.archive.ubuntu.com/ubuntu/ trusty restricted\n\
-deb http://security.ubuntu.com/ubuntu trusty-security main restricted\n\
-deb http://security.ubuntu.com/ubuntu trusty-security universe\n\
-deb http://security.ubuntu.com/ubuntu trusty-security multiverse\n\
-"> /etc/apt/sources.list
-
-# no Upstart or DBus
-# https://github.com/dotcloud/docker/issues/1724#issuecomment-26294856
-RUN apt-mark hold initscripts udev plymouth mountall
 RUN dpkg-divert --local --rename --add /sbin/initctl && ln -sf /bin/true /sbin/initctl
 
 RUN apt-get update \
     && apt-get install -y --force-yes --no-install-recommends supervisor \
-        openssh-server pwgen sudo vim-tiny \
+        openssh-server pwgen sudo vim-tiny git \
         net-tools \
         lxde x11vnc xvfb \
-        gtk2-engines-murrine ttf-ubuntu-font-family \
+        gtk2-engines-murrine fonts-ubuntu fonts-ubuntu-console fonts-ubuntu-title \
         libreoffice firefox \
     && apt-get autoclean \
     && apt-get autoremove \
@@ -37,8 +23,8 @@ RUN chmod +x /etc/startup.aux/00.sh
 RUN mkdir -p /etc/supervisor/conf.d
 RUN rm /etc/supervisor/supervisord.conf
 
-ADD noVNC /noVNC/
-
+RUN git clone https://github.com/novnc/noVNC.git /novnc
+RUN chmod +x /novnc/utils/novnc_proxy
 ADD startup.sh /
 ADD supervisord.conf /etc/supervisor/
 EXPOSE 6080
